@@ -1,0 +1,5 @@
+node_modules
+.husky
+
+# BUILD FILE - it will ignore any folder that starts with dist
+dist*/ 
