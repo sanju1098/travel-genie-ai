@@ -67,22 +67,22 @@ const Home = () => {
         </>
       </Box>
 
-      <footer className="text-center text-gray-700 p-6 bg-[#6EE7B7]">
+      <footer className="text-center text-[#D1D5DB] p-6 bg-[#2C3542]">
         <Typography variant="body1">
           © {new Date().getFullYear()} TravelGenie.AI • Powered by Gemini 1.5 Flash
         </Typography>
         <Typography variant="body2" className="mt-2 flex justify-center items-center gap-1">
-          <Code fontSize="small" sx={{color: "#364153 "}} />
+          <Code fontSize="small" sx={{color: "#ffffff "}} />
           Developed by
           <a
-            href="https://sanjay-portfolio-delta.vercel.app/"
+            href="https://sanjay-dev-beta.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-800 hover:underline"
+            className="text-[#D1D5DB] hover:underline"
           >
             Sanjay Kumar
           </a>
-          <CodeOff fontSize="small" sx={{color: "#364153 "}} />
+          <CodeOff fontSize="small" sx={{color: "#ffffff "}} />
         </Typography>
       </footer>
     </div>

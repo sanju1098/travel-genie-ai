@@ -37,7 +37,7 @@ const TravelResults: React.FC<TravelResultsProps> = ({travelPlan, travelDetails,
   return (
     <div
       ref={resultRef}
-      className="animate-slide-up max-w-5xl mx-auto my-12 bg-[#A7F3D0] text-[#333333] rounded-lg shadow-lg"
+      className="animate-slide-up max-w-5xl mx-auto my-12 bg-white text-[#333333] rounded-lg shadow-lg"
     >
       <Box className="p-8">
         <Box className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -104,7 +104,7 @@ const TravelResults: React.FC<TravelResultsProps> = ({travelPlan, travelDetails,
           )}
         </Box>
       </Box>
-      <Box className="p-8 travel-details-response bg-[#D1FAE5] text-[#333333] rounded-b-lg shadow-md">
+      <Box className="p-8 travel-details-response bg-gray-100 text-[#333333] rounded-b-lg shadow-md">
         <Markdown>{travelPlan}</Markdown>
       </Box>
     </div>
