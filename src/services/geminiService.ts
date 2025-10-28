@@ -33,7 +33,7 @@ export interface TravelDetails {
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  private model: string = "gemini-1.5-flash";
+  private model: string = "gemini-2.5-flash";
 
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
