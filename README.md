@@ -8,4 +8,4 @@
 
 **Frontend:** React JS, TypeScript, Vite, Material UI (MUI), Tailwind CSS
 
-**AI Model**: Gemini 1.5 Flash AI
+**AI Model**: Gemini 2.5 Flash AI
