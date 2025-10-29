@@ -39,19 +39,22 @@ export class GeminiService {
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
-  async generateTravelPlan(travelDetails: TravelDetails): Promise<any> {
-    try {
-      const generativeModel = this.genAI.getGenerativeModel({
-        model: this.model,
-        safetySettings
-      });
+  /**
+   * Generate a travel plan.
+   * Accepts an optional AbortSignal to allow cancelling the request from the UI.
+   * Also supports an optional timeout (ms) after which the promise will reject.
+   */
+  async generateTravelPlan(
+    travelDetails: TravelDetails,
+    signal?: AbortSignal,
+    timeoutMs: number = 120000
+  ): Promise<any> {
+    // Helper: build the prompt
+    const tripDurationDays = Math.ceil(
+      (travelDetails.endDate.getTime() - travelDetails.startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-      const tripDurationDays = Math.ceil(
-        (travelDetails.endDate.getTime() - travelDetails.startDate.getTime()) /
-          (1000 * 60 * 60 * 24)
-      );
-
-      const prompt = `
+    const prompt = `
       Act as a travel planning AI. Create a detailed travel plan with the following structure and information:
       
       Travel Details:
@@ -80,27 +83,51 @@ export class GeminiService {
       Format the response in a clean, organized manner with clear section headers. Make all recommendations specific to ${travelDetails.destination} and tailored to the provided interests: ${travelDetails.interests.join(", ")}.
       `;
 
-      const result = await generativeModel.generateContent(prompt);
-      const response = await result.response;
-      const text: any = response.text();
+    // Create the generative model (using this.model which already set to gemini-2.5-flash)
+    try {
+      const generativeModel = this.genAI.getGenerativeModel({
+        model: this.model,
+        safetySettings
+      });
 
-      // Parse the response to extract sections
-      // const itineraryMatch = text.match(/Itinerary:?([\s\S]*?)(?=Accommodations:|$)/i);
-      // const accommodationsMatch = text.match(/Accommodations:?([\s\S]*?)(?=Transportation:|$)/i);
-      // const transportationMatch = text.match(/Transportation:?([\s\S]*?)(?=Activities|$)/i);
-      // const activitiesMatch = text.match(/Activities[^:]*:?([\s\S]*?)(?=Budget Breakdown:|$)/i);
-      // const budgetMatch = text.match(/Budget Breakdown:?([\s\S]*?)(?=Travel Tips:|$)/i);
-      // const tipsMatch = text.match(/Travel Tips:?([\s\S]*?)$/i);
+      // Start the generation
+      const generationPromise = (async () => {
+        const result = await generativeModel.generateContent(prompt);
+        const response = await result.response;
+        const text: any = response.text();
+        return text;
+      })();
 
-      // const travelPlan: TravelPlan = {
-      //   itinerary: itineraryMatch ? itineraryMatch[1].trim() : "No itinerary generated",
-      //   accommodations: accommodationsMatch ? accommodationsMatch[1].trim() : "No accommodations generated",
-      //   transportation: transportationMatch ? transportationMatch[1].trim() : "No transportation generated",
-      //   activities: activitiesMatch ? activitiesMatch[1].trim() : "No activities generated",
-      //   budgetBreakdown: budgetMatch ? budgetMatch[1].trim() : "No budget breakdown generated",
-      //   travelTips: tipsMatch ? tipsMatch[1].trim() : "No travel tips generated",
-      // };
-      return text;
+      // Abort promise that rejects when signal is aborted
+      let abortHandler: (() => void) | null = null;
+      const abortPromise = new Promise((_resolve, reject) => {
+        if (signal) {
+          if (signal.aborted) {
+            reject(new Error("Request aborted"));
+            return;
+          }
+          abortHandler = () => {
+            reject(new Error("Request aborted"));
+          };
+          signal.addEventListener("abort", abortHandler);
+        }
+      });
+
+      // Timeout promise
+      const timeoutPromise = new Promise((_resolve, reject) => {
+        const id = setTimeout(() => {
+          clearTimeout(id);
+          reject(new Error("Request timed out"));
+        }, timeoutMs);
+      });
+
+      // Race: generation | abort | timeout
+      try {
+        const result = await Promise.race([generationPromise, abortPromise, timeoutPromise]);
+        return result;
+      } finally {
+        if (signal && abortHandler) signal.removeEventListener("abort", abortHandler);
+      }
     } catch (error) {
       console.error("Error generating travel plan:", error);
       throw new Error(
